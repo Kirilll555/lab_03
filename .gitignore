@@ -1,1 +1,8 @@
-New-Item .gitignore -ItemType File
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.idea/
+*.egg-info/
+data.json
+bad_data.json
