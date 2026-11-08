@@ -12,7 +12,7 @@
 ## Как запустить
 
 Проверить, как всё работает:
-`python demo.py`
+`python -m catalog`
 
 Запустить тесты:
 `python -m pytest`
