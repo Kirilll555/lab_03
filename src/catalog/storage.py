@@ -1,24 +1,22 @@
 import json
 
-from .errors import FileError, FormatError, RoomError
-from .models import Room
+from catalog.errors import FileError, FormatError, RoomError
+from catalog.models import Room
+
+FORMAT_VERSION = 1
+FIELDS = ['room_id', 'name', 'room_type', 'year', 'count', 'building']
 
 
 def save(catalog, filename):
     rooms_list = []
     for room in catalog:
-        info = {
-            'room_id': room.room_id,
-            'name': room.name,
-            'room_type': room.room_type,
-            'year': room.year,
-            'count': room.count,
-            'building': room.building
-        }
+        info = {}
+        for field in FIELDS:
+            info[field] = getattr(room, field)
         rooms_list.append(info)
 
     data = {
-        'format_version': 1,
+        'format_version': FORMAT_VERSION,
         'rooms': rooms_list
     }
 
@@ -33,24 +31,18 @@ def load(catalog, filename):
     except (json.JSONDecodeError, FileNotFoundError):
         raise FileError('Ошибка обработки файла')
 
-    if data.get('format_version') != 1:
+    if data.get('format_version') != FORMAT_VERSION:
         raise FormatError('Неизвестная версия файла')
 
     new_rooms = {}
     try:
         for item in data['rooms']:
-            room = Room(
-                room_id=item['room_id'],
-                name=item['name'],
-                room_type=item['room_type'],
-                year=item['year'],
-                count=item['count'],
-                building=item['building']
-            )
+            room = Room(**{field: item[field] for field in FIELDS})
+
             if room.room_id in new_rooms:
                 raise FileError('Дубликат ID в файле')
             new_rooms[room.room_id] = room
-    except (KeyError, TypeError, RoomError):  # <--- ВОТ ТУТ ДОЛЖЕН БЫТЬ RoomError
+    except (KeyError, TypeError, RoomError):
         raise FileError('Ошибка обработки данных файла')
 
     catalog._rooms = new_rooms
